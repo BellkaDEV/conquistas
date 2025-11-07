@@ -1,0 +1,203 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Escola {
+public:
+    struct Nota { float valor; Nota *prox; };
+    string nome; int matricula; Nota *notas; Escola *prox;
+
+    int GerarMatricula(Escola *inicio) {
+        int maxMat = 0;
+        Escola *aux = inicio;
+        while (aux != NULL) {
+            if (aux->matricula > maxMat) maxMat = aux->matricula;
+            aux = aux->prox;
+        }
+        return maxMat + 1;
+    }
+
+    Escola *InserirAluno(Escola *inicio, string nomeAluno) {
+        Escola *novo = new Escola();
+        novo->nome = nomeAluno;
+        novo->matricula = GerarMatricula(inicio);
+        novo->prox = NULL;
+        novo->notas = NULL;
+
+        if (inicio == NULL) inicio = novo;
+        else if (novo->nome < inicio->nome) {
+            novo->prox = inicio;
+            inicio = novo;
+        } else {
+            Escola *aux = inicio;
+            while (aux->prox != NULL && aux->prox->nome < novo->nome)
+                aux = aux->prox;
+            novo->prox = aux->prox;
+            aux->prox = novo;
+        }
+        cout << "Aluno cadastrado! Matricula: " << novo->matricula << endl;
+        return inicio;
+    }
+
+    void ExibirAlunos(Escola *inicio) {
+        if (inicio == NULL) {
+            cout << "Nenhum aluno cadastrado.\n";
+            return;
+        }
+        cout << "\n=== LISTA DE ALUNOS ===\n";
+        Escola *aux = inicio;
+        while (aux != NULL) {
+            cout << "Matricula: " << aux->matricula << " | Nome: " << aux->nome << endl;
+            aux = aux->prox;
+        }
+    }
+
+    Escola *PesquisarAluno(Escola *inicio, string nomeAluno) {
+        Escola *aux = inicio;
+        while (aux != NULL) {
+            if (aux->nome == nomeAluno) return aux;
+            aux = aux->prox;
+        }
+        return NULL;
+    }
+
+    void InserirNota(Escola *inicio, string nomeAluno, float valor) {
+        Escola *aluno = PesquisarAluno(inicio, nomeAluno);
+        if (aluno == NULL) {
+            cout << "Aluno nao encontrado.\n";
+            return;
+        }
+        Nota *nova = new Nota();
+        nova->valor = valor;
+        nova->prox = aluno->notas;
+        aluno->notas = nova;
+        cout << "Nota registrada com sucesso para " << aluno->nome << "!\n";
+    }
+
+    void ExibirNotas(Escola *inicio, string nomeAluno) {
+        Escola *aluno = PesquisarAluno(inicio, nomeAluno);
+        if (aluno == NULL) {
+            cout << "Aluno nao encontrado.\n";
+            return;
+        }
+        cout << "\nNotas de " << aluno->nome << ":\n";
+        Nota *aux = aluno->notas;
+        if (aux == NULL) {
+            cout << "Sem notas registradas.\n";
+            return;
+        }
+        while (aux != NULL) {
+            cout << aux->valor << endl;
+            aux = aux->prox;
+        }
+    }
+
+    void ExcluirNota(Escola *inicio, string nomeAluno) {
+        Escola *aluno = PesquisarAluno(inicio, nomeAluno);
+        if (aluno == NULL) {
+            cout << "Aluno nao encontrado.\n";
+            return;
+        }
+        if (aluno->notas == NULL) {
+            cout << "Nao ha notas para excluir.\n";
+            return;
+        }
+        Nota *rem = aluno->notas;
+        aluno->notas = aluno->notas->prox;
+        delete rem;
+        cout << "Nota mais recente excluida.\n";
+    }
+
+    Escola *RemoverAluno(Escola *inicio, string nomeAluno) {
+        if (inicio == NULL) {
+            cout << "Lista vazia.\n";
+            return inicio;
+        }
+
+        Escola *aux = inicio, *ant = NULL;
+        while (aux != NULL && aux->nome != nomeAluno) {
+            ant = aux;
+            aux = aux->prox;
+        }
+
+        if (aux == NULL) {
+            cout << "Aluno nao encontrado.\n";
+            return inicio;
+        }
+
+        if (aux->notas != NULL) {
+            cout << "Nao e possivel remover. O aluno possui notas registradas.\n";
+            return inicio;
+        }
+
+        if (ant == NULL) inicio = aux->prox;
+        else ant->prox = aux->prox;
+
+        delete aux;
+        cout << "Aluno removido com sucesso.\n";
+        return inicio;
+    }
+};
+
+void Menu() {
+    cout << "\n=== MENU ESCOLA ===\n";
+    cout << "1. Inserir aluno\n";
+    cout << "2. Exibir alunos\n";
+    cout << "3. Inserir nota\n";
+    cout << "4. Exibir notas de aluno\n";
+    cout << "5. Excluir nota mais recente\n";
+    cout << "6. Remover aluno\n";
+    cout << "7. Sair\n";
+    cout << "Opcao: ";
+}
+
+int main() {
+    Escola *lista = NULL, obj;
+    int opcao;
+    string nome;
+    float nota;
+
+    do {
+        Menu();
+        cin >> opcao;
+
+        switch (opcao) {
+        case 1:
+            cout << "Nome do aluno: ";
+            cin >> nome;
+            lista = obj.InserirAluno(lista, nome);
+            break;
+        case 2:
+            obj.ExibirAlunos(lista);
+            break;
+        case 3:
+            cout << "Nome do aluno: ";
+            cin >> nome;
+            cout << "Nota: ";
+            cin >> nota;
+            obj.InserirNota(lista, nome, nota);
+            break;
+        case 4:
+            cout << "Nome do aluno: ";
+            cin >> nome;
+            obj.ExibirNotas(lista, nome);
+            break;
+        case 5:
+            cout << "Nome do aluno: ";
+            cin >> nome;
+            obj.ExcluirNota(lista, nome);
+            break;
+        case 6:
+            cout << "Nome do aluno: ";
+            cin >> nome;
+            lista = obj.RemoverAluno(lista, nome);
+            break;
+        case 7:
+            cout << "Encerrando...\n";
+            break;
+        default:
+            cout << "Opcao invalida.\n";
+        }
+    } while (opcao != 7);
+    return 0;
+
